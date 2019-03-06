@@ -39,7 +39,7 @@ public class UserController {
 			return "redirect:/users/loginForm";
 		}
 		System.out.println("login Success");
-		session.setAttribute("user", user);
+		session.setAttribute("sessionedUser", user);
 		
 		return "redirect:/";
 	}
@@ -57,29 +57,54 @@ public class UserController {
 	}
 	
 	@GetMapping("")
-	public String list(Model model) {
+	public String list(Model model, HttpSession session) {
+		Object tempUser = session.getAttribute("sessionedUser");
+		if (tempUser == null) {
+			return "redirect:/users/loginForm";
+		}
+		
 		model.addAttribute("users", userRepository.findAll());
 		return "/user/list";
 	}
 	
 	@GetMapping("{id}/form")
-	public String updateForm(@PathVariable Long id, Model model) {
+	public String updateForm(@PathVariable Long id, Model model, HttpSession session) {
+		Object tempUser = session.getAttribute("sessionedUser");
+		if (tempUser == null) {
+			return "redirect:/users/loginForm";
+		}
+		
+		User sessionedUser = (User) tempUser;
+		if (!id.equals(sessionedUser.getId())) {
+			throw new IllegalStateException("You can't update another user");
+		}
+		
 		User user = userRepository.findById(id).orElse(null);
 		model.addAttribute("user", user);
 		return "/user/updateForm";
 	}
 	
 	@PutMapping("/{id}")
-	public String update(@PathVariable Long id, User newUser) {
+	public String update(@PathVariable Long id, User updatedUser, HttpSession session) {
+		Object tempUser = session.getAttribute("sessionedUser");
+		if (tempUser == null) {
+			return "redirect:/users/loginForm";
+		}
+		
+		User sessionedUser = (User) tempUser;
+		if (!id.equals(sessionedUser.getId())) {
+			throw new IllegalStateException("You can't update another user");
+		}
+		
 		User user = userRepository.findById(id).orElse(null);
-		user.update(newUser);
+		user.update(updatedUser);
 		userRepository.save(user);
 		return "redirect:/users";
 	}
 	
 	@GetMapping("/logout")
 	public String logout(HttpSession session) {
-		session.removeAttribute("user");
+		session.invalidate();
 		return "redirect:/";
 	}
 	
