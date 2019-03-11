@@ -34,12 +34,12 @@ public class UserController {
 			return "redirect:/users/loginForm";			
 		}
 		
-		if (!password.equals(user.getPassword())) {
+		if (!user.matchPassword(password)) {
 			System.out.println("login Failed");
 			return "redirect:/users/loginForm";
 		}
 		System.out.println("login Success");
-		session.setAttribute("sessionedUser", user);
+		session.setAttribute(HttpSessionUtils.USER_SESSION_KEY, user);
 		
 		return "redirect:/";
 	}
@@ -69,12 +69,12 @@ public class UserController {
 	
 	@GetMapping("{id}/form")
 	public String updateForm(@PathVariable Long id, Model model, HttpSession session) {
-		Object tempUser = session.getAttribute("sessionedUser");
-		if (tempUser == null) {
+		
+		if (HttpSessionUtils.isLoginUser(session)) {
 			return "redirect:/users/loginForm";
 		}
 		
-		User sessionedUser = (User) tempUser;
+		User sessionedUser = HttpSessionUtils.getUserFromSession(session);
 		if (!id.equals(sessionedUser.getId())) {
 			throw new IllegalStateException("You can't update another user");
 		}
@@ -83,7 +83,7 @@ public class UserController {
 		model.addAttribute("user", user);
 		return "/user/updateForm";
 	}
-	
+
 	@PutMapping("/{id}")
 	public String update(@PathVariable Long id, User updatedUser, HttpSession session) {
 		Object tempUser = session.getAttribute("sessionedUser");
