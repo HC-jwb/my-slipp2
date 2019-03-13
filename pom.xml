@@ -13,6 +13,7 @@
 	<artifactId>my-slipp</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>my-slipp</name>
+	<packaging>war</packaging>
 	<description>SLiPP Q&amp;A</description>
 
 	<properties>
